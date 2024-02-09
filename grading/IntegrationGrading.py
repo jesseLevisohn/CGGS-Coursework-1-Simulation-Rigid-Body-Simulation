@@ -12,11 +12,10 @@ if __name__ == '__main__':
 
     data_path = os.path.join('..', 'data')  # Replace with the path to your folder
 
-
     mesh_file_path = os.path.join(data_path, 'cylinder.mesh')  # it doesn't matter
     origVertices, faces, tets = load_mesh_file(mesh_file_path)
 
-    pickle_file_path = data_path + os.path.sep + 'basic-version.data'
+    pickle_file_path = data_path + os.path.sep + 'integration.data'
     with open(pickle_file_path, 'rb') as pickle_file:
         loaded_data = pickle.load(pickle_file)
 
