@@ -3,11 +3,18 @@ import scipy.linalg
 
 
 def QMult(q1, q2):
-    r = (q1[:, 0] * q2[:, 0] - np.sum(q1[:, 1:4] * q2[:, 1:4], axis=1)).reshape(q1.shape[0], 1)
-    v = q1[:, 0].reshape(q1.shape[0], 1) * q2[:, 1:4] + q2[:, 0].reshape(q2.shape[0], 1) * q1[:, 1:4] + np.cross(
-        q1[:, 1:4], q2[:, 1:4])
-    return np.hstack((r, v))
+    # r = (q1[:, 0] * q2[:, 0] - np.sum(q1[:, 1:4] * q2[:, 1:4], axis=1)).reshape(q1.shape[0], 1)
+    # v = q1[:, 0].reshape(q1.shape[0], 1) * q2[:, 1:4] + q2[:, 0].reshape(q2.shape[0], 1) * q1[:, 1:4] + np.cross(
+    #    q1[:, 1:4], q2[:, 1:4])
+    w1, x1, y1, z1 = q1[:, 0], q1[:, 1], q1[:, 2], q1[:, 3]
+    w2, x2, y2, z2 = q2[:, 0], q2[:, 1], q2[:, 2], q2[:, 3]
 
+    w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
+    x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
+    y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
+    z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
+
+    return np.column_stack((w, x, y, z))
 
 def QConj(q):
     return np.hstack((q[:, 0].reshape(q.shape[0], 1), -q[:, 1:4].reshape(q.shape[0], 3)))
@@ -37,17 +44,10 @@ def QExp(q):
 
 
 def Q2RotMatrix(q):
-    corrv = q[:, 1:4].transpose() @ q[:, 1:4]
-    R = np.array([[1.0 - 2.0 * (corrv[1, 1] + corrv[2, 2]), 2.0 * (corrv[0, 1] - (q[:, 0] * q[:, 3])[0]), 2 * (corrv[0, 2] + (q[:, 0] * q[:, 2])[0])],
-                 [2.0 * (corrv[1, 0] + (q[:, 0] * q[:, 3])[0]), 1.0 - 2.0 * (corrv[2, 2] + corrv[0, 0]), 2.0 * (corrv[1, 2] - (q[:, 0] * q[:, 1])[0])],
-                 [2.0 * (corrv[2, 0] - (q[:, 0] * q[:, 2])[0]), 2.0 * (corrv[2, 1] + (q[:, 0] * q[:, 1])[0]),1.0 - 2.0 * (corrv[0, 0] + corrv[1, 1])]])
-    # R[0, 0] = 1.0 - 2.0 * (corrv[1, 1] + corrv[2, 2])
-    # R[1, 1] = 1.0 - 2.0 * (corrv[2, 2] + corrv[0, 0])
-    # R[2, 2] = 1.0 - 2.0 * (corrv[0, 0] + corrv[1, 1])
-    # R[0, 1] = 2.0 * (corrv[0, 1] - q[:, 0] * q[:, 3])
-    # R[1, 0] = 2.0 * (corrv[1, 0] + q[:, 0] * q[:, 3])
-    # R[0, 2] = 2.0 * (corrv[0, 2] + q[:, 0] * q[:, 2])
-    # R[2, 0] = 2.0 * (corrv[2, 0] - q[:, 0] * q[:, 2])
-    # R[1, 2] = 2.0 * (corrv[1, 2] - q[:, 0] * q[:, 1])
-     #R[2, 1] = 2.0 * (corrv[2, 1] + q[:, 0] * q[:, 1])
+    w, x, y, z = q[0]
+    R = np.array([
+        [1 - 2*(y**2) - 2*(z**2), 2*x*y - 2*z*w, 2*x*z + 2*y*w],
+        [2*x*y + 2*z*w, 1 - 2*(x**2) - 2*(z**2), 2*y*z - 2*x*w],
+        [2*x*z - 2*y*w, 2*y*z + 2*x*w, 1 - 2*(x**2) - 2*(y**2)]
+    ])
     return R
